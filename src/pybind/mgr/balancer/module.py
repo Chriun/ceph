@@ -174,8 +174,7 @@ class Eval:
                     'score': 0,
                 }
                 continue
-            "bye"
-avg = float(total[t]) / float(num)
+            avg = float(total[t]) / float(num)
             dev = 0.0
 
             # score is a measure of how uneven the data distribution is.
@@ -345,7 +344,25 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
+            #'pg_stats ': self.get("pg_stats"),
         }
+        return (0, json.dumps(s, indent=4, sort_keys=True), '')
+
+    @CLIReadCommand('balancer status detailed')
+    def show_status_detail(self) -> Tuple[int, str, str]:
+        """
+        Show balancer status detailed
+        """
+        s = {
+            'plans': list(self.plans.keys()),
+            'active': self.active,
+            'last_optimize_started': self.last_optimize_started,
+            'last_optimize_duration': self.last_optimize_duration,
+            'optimize_result': self.optimize_result,
+            'no_optimization_needed': self.no_optimization_needed,
+            'mode': self.get_module_option('mode'),
+            'insert_detailed_keys_here': 'hi',
+            }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
     @CLICommand('balancer mode')
@@ -1392,18 +1409,3 @@ class Module(MgrModule):
             }), 'foo')
             commands.append(result)
 
-        # wait for commands
-        self.log.debug('commands %s' % commands)
-        for result in commands:
-            r, outb, outs = result.wait()
-            if r != 0:
-                self.log.error('execute error: r = %d, detail = %s' % (r, outs))
-                return r, outs
-        self.log.debug('done')
-        return 0, ''
-
-    def gather_telemetry(self) -> Dict[str, Any]:
-        return {
-            'active': self.active,
-            'mode': self.mode,
-        }
