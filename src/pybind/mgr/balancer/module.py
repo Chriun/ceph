@@ -17,6 +17,7 @@ import datetime
 
 TIME_FORMAT = '%Y-%m-%d_%H:%M:%S'
 
+
 class MappingState:
     def __init__(self, osdmap, raw_pg_stats, raw_pool_stats, desc=''):
         self.desc = desc
@@ -343,13 +344,14 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
+            #'pg_stats ': self.get("pg_stats"),
         }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
     @CLIReadCommand('balancer status detailed')
-    def show_status_detailed(self) -> Tuple[int, str, str]:
+    def show_status_detail(self) -> Tuple[int, str, str]:
         """
-        Show balancer status in more detail
+        Show balancer status detailed
         """
         s = {
             'plans': list(self.plans.keys()),
@@ -359,8 +361,8 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
-            'pg_optimization': 'test',
-        }
+            'insert_detailed_keys_here': 'hi',
+            }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
     @CLICommand('balancer mode')
