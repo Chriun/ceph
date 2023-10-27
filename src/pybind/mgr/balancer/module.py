@@ -17,8 +17,6 @@ import datetime
 
 TIME_FORMAT = '%Y-%m-%d_%H:%M:%S'
 
-#hello again3
-
 class MappingState:
     def __init__(self, osdmap, raw_pg_stats, raw_pool_stats, desc=''):
         self.desc = desc
@@ -175,8 +173,7 @@ class Eval:
                     'score': 0,
                 }
                 continue
-            "bye"
-avg = float(total[t]) / float(num)
+            avg = float(total[t]) / float(num)
             dev = 0.0
 
             # score is a measure of how uneven the data distribution is.
@@ -346,6 +343,23 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
+        }
+        return (0, json.dumps(s, indent=4, sort_keys=True), '')
+
+    @CLIReadCommand('balancer status detailed')
+    def show_status_detailed(self) -> Tuple[int, str, str]:
+        """
+        Show balancer status in more detail
+        """
+        s = {
+            'plans': list(self.plans.keys()),
+            'active': self.active,
+            'last_optimize_started': self.last_optimize_started,
+            'last_optimize_duration': self.last_optimize_duration,
+            'optimize_result': self.optimize_result,
+            'no_optimization_needed': self.no_optimization_needed,
+            'mode': self.get_module_option('mode'),
+            'pg_optimization': 'test',
         }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
