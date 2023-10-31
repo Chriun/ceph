@@ -174,6 +174,7 @@ class Eval:
                     'score': 0,
                 }
                 continue
+
             avg = float(total[t]) / float(num)
             dev = 0.0
 
