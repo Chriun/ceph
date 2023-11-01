@@ -362,7 +362,7 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
-            'insert_detailed_keys_here': 'hi',
+            'pg_upmap_items': self.get_osdmap().dump().get('pg_upmap_items', ''),
             }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
