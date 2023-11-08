@@ -354,6 +354,13 @@ class Module(MgrModule):
         """
         Show balancer status detailed
         """
+        pg_movement = self.get_osdmap().dump().get('pg_upmap_items', '')
+        pg_upmap = []
+        for k in pg_movement:
+            pg_upmap.append(k['pgid'])
+            pg_upmap.append(k['mappings'][0]['from'])
+            pg_upmap.append(k['mappings'][0]['to'])
+
         s = {
             'plans': list(self.plans.keys()),
             'active': self.active,
@@ -362,7 +369,7 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
-            'pg_upmap_items': self.get_osdmap().dump().get('pg_upmap_items', ''),
+            'pg_upmap_items': pg_upmap, 
             }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
