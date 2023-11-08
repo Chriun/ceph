@@ -355,11 +355,12 @@ class Module(MgrModule):
         Show balancer status detailed
         """
         pg_movement = self.get_osdmap().dump().get('pg_upmap_items', '')
-        pg_upmap = []
+        pg_upmap = {}
         for k in pg_movement:
-            pg_upmap.append(k['pgid'])
-            pg_upmap.append(k['mappings'][0]['from'])
-            pg_upmap.append(k['mappings'][0]['to'])
+            from_to = []
+            from_to.append(k['mappings'][0]['from'])
+            from_to.append(k['mappings'][0]['to'])
+            pg_upmap[k['pgid']] = from_to
 
         s = {
             'plans': list(self.plans.keys()),
