@@ -346,7 +346,7 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
-            #'pg_stats ': self.get("pg_stats"),
+            'pg_stats ': self.get("pg_stats"),
         }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
            
@@ -356,7 +356,7 @@ class Module(MgrModule):
         Show balancer status detailed
         """
         pg_movement = self.get_osdmap().dump().get('pg_upmap_items', '')
-        #pg_last_optimized = diff(self.last_updated_pgs, pg_movement)
+        pg_last_optimized = diff(self.last_updated_pgs, pg_movement)
         pg_upmap = {}
         for k in pg_movement:
             from_to = []
@@ -373,21 +373,23 @@ class Module(MgrModule):
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
             'pg_upmap_items': pg_upmap,
-            #'pg_last_optimized': pg_last_optimized,
+            'pg_last_optimized': pg_last_optimized,
             }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
-    #def diff(old, current):
-    #    result = []
-    #    oldpgs = []
-    #    currentpgs = []
-    #    for j in old:
-    #        oldpgs.append(j["pgid"])
-    #    for k in current:
-    #        currentpgs.append(k["pgid"])
-    #    result = list(set(currentpgs) - set(oldpgs))
-    #    return result    
+    def diff(old, current):
+        # Create a set of "pgid" values from the 'old' list 
+        # using a set comprehension
+        oldpgs = {j["pgid"] for j in old}
+        # Create a set of "pgid" values from the 'current' list
+        currentpgs = {k["pgid"] for k in current}
+        # Calculate the set difference 
+        # (values in 'currentpgs' but not in 'oldpgs')
+        result = list(currentpgs - oldpgs)
+        # Return the list of "pgid" values present in 'current' but not in 'old'
+        return result
 
+    
     @CLICommand('balancer mode')
     def set_mode(self, mode: Mode) -> Tuple[int, str, str]:
         """
