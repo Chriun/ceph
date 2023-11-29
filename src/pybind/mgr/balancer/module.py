@@ -23,7 +23,6 @@ class MappingState:
         self.desc = desc
         self.osdmap = osdmap
         self.osdmap_dump = self.osdmap.dump()
-        self.last_updated_pgs = self.get_osdmap().dump().get('pg_upmap_items', '')
         self.crush = osdmap.get_crush()
         self.crush_dump = self.crush.dump()
         self.raw_pg_stats = raw_pg_stats
@@ -328,6 +327,8 @@ class Module(MgrModule):
     no_optimization_needed = False
     success_string = 'Optimization plan created successfully'
     in_progress_string = 'in progress'
+    last_pg_upmap = []
+
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(Module, self).__init__(*args, **kwargs)
@@ -346,17 +347,17 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
-            'pg_stats ': self.get("pg_stats"),
         }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
-           
+
     @CLIReadCommand('balancer status detailed')
     def show_status_detail(self) -> Tuple[int, str, str]:
         """
         Show balancer status detailed
         """
         pg_movement = self.get_osdmap().dump().get('pg_upmap_items', '')
-        pg_last_optimized = diff(self.last_updated_pgs, pg_movement)
+        #pg_last_optimized = self.diff(self.last_pg_upmap, pg_movement)
+        self.last_pg_upmap = self.diff(self.last_pg_upmap, self.get_osdmap().dump().get('pg_upmap_items', ''))
         pg_upmap = {}
         for k in pg_movement:
             from_to = []
@@ -372,24 +373,20 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
-            'pg_upmap_items': pg_upmap,
-            'pg_last_optimized': pg_last_optimized,
+            'pg_upmap_items': self.last_pg_upmap,
+            'pg_last_optimized': pg_movement,
             }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
-    def diff(old, current):
-        # Create a set of "pgid" values from the 'old' list 
-        # using a set comprehension
-        oldpgs = {j["pgid"] for j in old}
+    def diff(self, old, current) -> List[str]:
         # Create a set of "pgid" values from the 'current' list
         currentpgs = {k["pgid"] for k in current}
-        # Calculate the set difference 
+        # Calculate the set difference
         # (values in 'currentpgs' but not in 'oldpgs')
-        result = list(currentpgs - oldpgs)
+        result = list(currentpgs - set(old))
         # Return the list of "pgid" values present in 'current' but not in 'old'
         return result
 
-    
     @CLICommand('balancer mode')
     def set_mode(self, mode: Mode) -> Tuple[int, str, str]:
         """
@@ -735,6 +732,7 @@ class Module(MgrModule):
                 start = time.time()
                 r, detail = self.optimize(plan)
                 end = time.time()
+                self.last_pg_upmap = self.diff(self.last_pg_upmap, osdmap.dump().get('pg_upmap_items', ''))
                 self.last_optimize_duration = str(datetime.timedelta(seconds=(end - start)))
                 if r == 0:
                     self.optimize_result = self.success_string
