@@ -328,6 +328,7 @@ class Module(MgrModule):
     success_string = 'Optimization plan created successfully'
     in_progress_string = 'in progress'
     last_pg_upmap = []
+    changed_pg_upmap = []
 
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -356,14 +357,14 @@ class Module(MgrModule):
         Show balancer status detailed
         """
         pg_movement = self.get_osdmap().dump().get('pg_upmap_items', '')
-        #pg_last_optimized = self.diff(self.last_pg_upmap, pg_movement)
-        self.last_pg_upmap = self.diff(self.last_pg_upmap, self.get_osdmap().dump().get('pg_upmap_items', ''))
+        #self.last_pg_upmap = self.diff(self.last_pg_upmap, self.get_osdmap().dump().get('pg_upmap_items', ''))
         pg_upmap = {}
         for k in pg_movement:
             from_to = []
             from_to.append(k['mappings'][0]['from'])
             from_to.append(k['mappings'][0]['to'])
             pg_upmap[k['pgid']] = from_to
+
 
         s = {
             'plans': list(self.plans.keys()),
@@ -373,17 +374,18 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
-            'pg_upmap_items': self.last_pg_upmap,
+            'pg_upmap_items': self.changed_pg_upmap,
             'pg_last_optimized': pg_movement,
             }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
-    def diff(self, old, current) -> List[str]:
+    def diff(self, old, current) -> List[Dict]:
         # Create a set of "pgid" values from the 'current' list
-        currentpgs = {k["pgid"] for k in current}
+        #currentpgs = {k["pgid"] for k in current}
         # Calculate the set difference
         # (values in 'currentpgs' but not in 'oldpgs')
-        result = list(currentpgs - set(old))
+        #result = list(currentpgs - set(old))
+        result = [pgs for pgs in current if pgs not in old]
         # Return the list of "pgid" values present in 'current' but not in 'old'
         return result
 
@@ -391,7 +393,7 @@ class Module(MgrModule):
     def set_mode(self, mode: Mode) -> Tuple[int, str, str]:
         """
         Set balancer mode
-        """
+	        """
         if mode == Mode.upmap:
             min_compat_client = self.get_osdmap().dump().get('require_min_compat_client', '')
             if min_compat_client < 'luminous':  # works well because version is alphabetized..
@@ -732,7 +734,9 @@ class Module(MgrModule):
                 start = time.time()
                 r, detail = self.optimize(plan)
                 end = time.time()
-                self.last_pg_upmap = self.diff(self.last_pg_upmap, osdmap.dump().get('pg_upmap_items', ''))
+                #self.changed_pg_upmap = [pg for pg in osdmap.dump().get('pg_upmap_items', '') if pg not in self.last_pg_upmap]
+                self.changed_pg_upmap = self.diff(self.last_pg_upmap, osdmap.dump().get('pg_upmap_items', ''))
+                self.last_pg_upmap = osdmap.dump().get('pg_upmap_items', '')
                 self.last_optimize_duration = str(datetime.timedelta(seconds=(end - start)))
                 if r == 0:
                     self.optimize_result = self.success_string
