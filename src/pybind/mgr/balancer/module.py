@@ -331,7 +331,6 @@ class Module(MgrModule):
     added_pg_upmap_items = []
     removed_pg_upmap_items = []
 
-
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(Module, self).__init__(*args, **kwargs)
         self.event = Event()
