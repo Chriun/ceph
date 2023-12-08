@@ -352,13 +352,11 @@ class Module(MgrModule):
         }
         return (0, json.dumps(s, indent=4, sort_keys=True), '')
 
-    @CLIReadCommand('balancer status detailed')
+    @CLIReadCommand('balancer status detail')
     def show_status_detail(self) -> Tuple[int, str, str]:
         """
-        Show balancer status detailed
+        Show balancer status (detailed)
         """
-        pg_movement = self.get_osdmap().dump().get('pg_upmap_items', '')
-
         s = {
             'plans': list(self.plans.keys()),
             'active': self.active,
@@ -367,7 +365,6 @@ class Module(MgrModule):
             'optimize_result': self.optimize_result,
             'no_optimization_needed': self.no_optimization_needed,
             'mode': self.get_module_option('mode'),
-            'pg_last_optimized': pg_movement,
             'added_pg_upmap_items': self.added_pg_upmap_items,
             'removed_pg_upmap_items': self.removed_pg_upmap_items,
             }
@@ -377,7 +374,7 @@ class Module(MgrModule):
     def set_mode(self, mode: Mode) -> Tuple[int, str, str]:
         """
         Set balancer mode
-	"""
+        """
         if mode == Mode.upmap:
             min_compat_client = self.get_osdmap().dump().get('require_min_compat_client', '')
             if min_compat_client < 'luminous':  # works well because version is alphabetized..
