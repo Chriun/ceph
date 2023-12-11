@@ -327,9 +327,9 @@ class Module(MgrModule):
     no_optimization_needed = False
     success_string = 'Optimization plan created successfully'
     in_progress_string = 'in progress'
-    last_pg_upmap = []
-    added_pg_upmap_items = []
-    removed_pg_upmap_items = []
+    last_pg_upmap: List[Dict[str, Any]] = []
+    added_pg_upmap_items: List[Dict[str, Any]] = []
+    removed_pg_upmap_items: List[Dict[str, Any]] = []
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(Module, self).__init__(*args, **kwargs)
@@ -366,7 +366,7 @@ class Module(MgrModule):
             'mode': self.get_module_option('mode'),
             'added_pg_upmap_items': self.added_pg_upmap_items,
             'removed_pg_upmap_items': self.removed_pg_upmap_items,
-            }
+        }
         return (0, json.dumps(s, indent=4), '')
 
     @CLICommand('balancer mode')
